@@ -1,0 +1,39 @@
+---
+description: Rules for refactoring components by hoisting application concerns out of presentation
+applies_to:
+  - component refactoring
+  - state hoisting
+  - component design
+  - prop injection
+---
+
+# Hoisting & Component Design Rules
+
+## Hoisting External Concerns
+
+**Rule**: When a component touches non-local state, fetched data, or side-effectful handlers, **hoist those concerns**:
+- Turn them into props owned by a parent/domain component.
+
+---
+
+## Refactoring Flow
+
+**Rule**: Refactor flows by following these steps:
+
+1. **Identify external dependencies** inside the component:
+   - State that is not local (Context, hooks, etc.)
+   - Data that is fetched from a network resource
+   - Handlers that affect state that is not local or make network requests
+
+2. **Convert them into props** (data + callbacks):
+   - Handlers passed in as functions (e.g., `onDuplicateProgression`, `onDeleteExercise`)
+   - Data and state passed in as... data
+
+3. **Move ownership** into a higher-level domain container/hook:
+   - Refactor the parent to pass in the data and behavior
+
+---
+
+## Component Purity
+
+**Rule**: After hoisting, Presentation components should be **pure UI** that receive all data and behaviors via props, with only local UI state remaining internal.

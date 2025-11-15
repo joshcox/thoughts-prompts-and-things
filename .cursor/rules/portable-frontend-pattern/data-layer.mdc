@@ -1,0 +1,32 @@
+---
+description: Rules for building the data layer that abstracts data access and APIs
+applies_to:
+  - data layer
+  - API clients
+  - data fetching
+  - network calls
+---
+
+# Data Layer Rules
+
+## Network Isolation
+
+**Rule**: All network calls and persistence logic live in Data (no fetch/axios in Domain/Presentation).
+
+---
+
+## Swappable API
+
+**Rule**: The Data API should be **swap-able** (real vs mock vs alternate backend) without changing Domain/Presentation.
+
+---
+
+## Domain-Shaped Data
+
+**Rule**: Data functions return **domain-shaped data**, not raw transport objects (no leaking transport concerns).
+
+---
+
+## Well-Defined Interface
+
+**Rule**: The data layer has a well-defined interface that can be substituted so long as the contract is fulfilled.

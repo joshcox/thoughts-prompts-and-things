@@ -1,0 +1,61 @@
+---
+description: Rules for defining and declaring the portable frontend architecture pattern
+applies_to:
+  - frontend architecture design
+  - package/library structure
+  - API surface design
+  - application scaffolding
+---
+
+# Rules for Defining / Declaring the Pattern
+
+## Define the Environment Prerequisites
+
+**Rule**: Explicitly list the "must-match" libraries (React version, TypeScript, UI library, router, etc.) that any host app must share.
+
+**Rule**: Treat these as part of the **contract** of your package—document them clearly; pin or tightly range versions.
+
+---
+
+## Define the Public Surface: "Sum and Parts"
+
+**Rule**: Export **both**:
+- A **top-level application entry** (the thing you mount/embed), and  
+- A **library of domain-specific pieces** (hooks, providers, UI components, utilities).
+
+**Rule**: Make it obvious which exports are:
+- **Application-level (opinionated)** vs  
+- **Composable building blocks (low-level, reusable)**.
+
+---
+
+## Define the Layering Model
+
+**Rule**: Declare three layers and stick to them:
+- **Data**: data access and mutation (frontend API).
+- **Domain**: state & behavior, orchestrating flows.
+- **Presentation**: context-free UI.
+
+**Rule**: Document **which layer may depend on which**:
+- Presentation → Domain (via props only).  
+- Domain → Data & Presentation.  
+- Data → external services only (no UI, no domain).
+
+---
+
+## Define the Embedding Scenarios
+
+**Rule**: Explicitly support and document:
+- **Standalone**: how to mount the app.
+- **Shallow embed**: how to render the app inside another app (props, router, theming, auth assumptions).
+- **Deep embed**: how to import and compose pieces (what you can safely use and what remains internal).
+
+---
+
+## Define Dependency Boundaries
+
+**Rule**: Classify dependencies as:
+- **Prerequisites** (environment-defining) vs  
+- **Internal implementation details** (kept behind your public APIs).
+
+**Rule**: Never leak internal deps in your types, props, or return values (e.g., don't return `FormikValues` from a hook that's supposed to be generic).

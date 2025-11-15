@@ -1,0 +1,33 @@
+---
+description: Rules for building context-free presentation layer components
+applies_to:
+  - UI components
+  - presentation layer
+  - component design
+---
+
+# Presentation Layer Rules
+
+## Context-Free Components
+
+**Rule**: Presentation components must be **context-free**:
+- No direct data fetching.
+- No direct access to global state, router, or service clients.
+
+---
+
+## Injection via Props
+
+**Rule**: Any non-local state, data, or side effects must be **injected via props** (data in, callbacks out).
+
+---
+
+## Local State Scope
+
+**Rule**: Keep local state strictly **UI-local** (e.g., open/closed, input text), not domain/business state.
+
+---
+
+## UI Widget Mindset
+
+**Rule**: Treat Presentation components as **UI widgets** that can be dropped into any app that satisfies prerequisites.

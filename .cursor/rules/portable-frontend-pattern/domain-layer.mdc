@@ -1,0 +1,33 @@
+---
+description: Rules for building the domain layer that orchestrates business logic and state
+applies_to:
+  - business logic
+  - domain layer
+  - state management
+  - hooks
+  - containers
+---
+
+# Domain Layer Rules
+
+## Business Logic Ownership
+
+**Rule**: All **business logic, workflows, and app state** live in the domain layer (hooks, containers, feature modules).
+
+---
+
+## Data Communication
+
+**Rule**: Domain talks to Data via a clear **frontend API** and passes **plain data + handlers** down to Presentation.
+
+---
+
+## Presentation Independence
+
+**Rule**: Domain must not rely on Presentation internals; it should only know the public props API.
+
+---
+
+## Orchestration Layer
+
+**Rule**: The Domain is the layer that "glues" the Data and Presentation together to create a cohesive application.
