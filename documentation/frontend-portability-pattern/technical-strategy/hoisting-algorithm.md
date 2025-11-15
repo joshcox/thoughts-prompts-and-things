@@ -1,1081 +1,739 @@
 # Hoisting Algorithm: Technical Strategy
 
-## Conceptual Overview
+- [Hoisting Algorithm: Technical Strategy](#hoisting-algorithm-technical-strategy)
+  - [Overview](#overview)
+  - [What is Hoisting?](#what-is-hoisting)
+    - [The Technical Transformation](#the-technical-transformation)
+  - [Why Hoisting Creates Portability](#why-hoisting-creates-portability)
+    - [Breaking Environmental Bindings](#breaking-environmental-bindings)
+    - [Creating Substitutability](#creating-substitutability)
+    - [Enabling Composition](#enabling-composition)
+  - [Relationship to Layer Separation](#relationship-to-layer-separation)
+    - [Presentation Layer](#presentation-layer)
+    - [Domain Layer](#domain-layer)
+    - [Data Layer](#data-layer)
+    - [The Boundary](#the-boundary)
+  - [Execution Principles](#execution-principles)
+    - [Principle 1: Dependency Identification](#principle-1-dependency-identification)
+    - [Principle 2: Interface Design](#principle-2-interface-design)
+    - [Principle 3: Concern Relocation](#principle-3-concern-relocation)
+  - [Technical Considerations](#technical-considerations)
+    - [State Management](#state-management)
+    - [Side Effect Management](#side-effect-management)
+    - [Callback Design](#callback-design)
+    - [Data Flow Architecture](#data-flow-architecture)
+    - [Testing Strategy](#testing-strategy)
+  - [Advanced Patterns](#advanced-patterns)
+    - [Graduated Hoisting](#graduated-hoisting)
+    - [Composition Patterns](#composition-patterns)
+    - [Props Forwarding](#props-forwarding)
+  - [Performance Implications](#performance-implications)
+    - [Re-render Optimization](#re-render-optimization)
+    - [Data Fetching Patterns](#data-fetching-patterns)
+  - [Common Pitfalls](#common-pitfalls)
+    - [Over-Hoisting](#over-hoisting)
+    - [Under-Hoisting](#under-hoisting)
+    - [Interface Leakage](#interface-leakage)
+  - [Summary](#summary)
 
-### What is Hoisting?
 
-In the context of frontend portability, **hoisting** refers to the systematic process of extracting application-specific concerns from UI components and moving them to a higher-level orchestration layer. This process transforms tightly-coupled components into reusable, context-free presentation components.
+## Overview
 
-The term "hoisting" comes from the act of "lifting" or "raising" dependencies out of a component, similar to how hoisting works in JavaScript where declarations are moved to the top of their scope. In our case, we're moving concerns up the component hierarchy.
+The **hoisting algorithm** is the core technical strategy that enables the three-layer architecture and achieves component portability. This document explains the execution details, underlying principles, and technical considerations that make hoisting work.
 
-### Why Hoisting Creates Portability
+For step-by-step refactoring instructions, see [Guide: Hoisting Refactoring](../guides/hoisting-refactoring-guide.md).
 
-When a component directly depends on application-specific context (global state, routing, authentication, API clients, etc.), it becomes bound to that specific application environment. By hoisting these dependencies out and injecting them as props, the component becomes:
+## What is Hoisting?
 
-1. **Environment-agnostic**: No assumptions about the surrounding application context
-2. **Composable**: Can be used in any application that can provide the required props
-3. **Testable**: Can be tested in isolation by passing mock props
-4. **Portable**: Can be moved between applications without modification
+**Hoisting** is the systematic process of extracting application-specific concerns from UI components and relocating them to a higher-level orchestration layer (the domain layer). This transforms tightly-coupled components into reusable, context-free presentation components.
 
-The hoisting process is the mechanism that enables the three-layer architecture (Data, Domain, Presentation) to function effectively.
+The term derives from "lifting" or "raising" dependencies out of a component - similar to JavaScript's hoisting mechanism where declarations move to the top of their scope. Here, we're moving concerns up the component hierarchy.
 
-### Relationship to Layer Separation
+### The Technical Transformation
 
-Hoisting is the practical technique for enforcing layer boundaries:
+Hoisting performs a **concern extraction** that produces:
 
-- **Presentation Layer**: After hoisting, contains only pure UI components that receive all dependencies via props
-- **Domain Layer**: Becomes the owner of hoisted concerns, orchestrating state, side effects, and business logic
-- **Data Layer**: Remains the source of truth for data access, called by the domain layer
+1. **Context-Free Presentation Component**
+   - Receives all external dependencies via props
+   - Contains only local UI state
+   - Pure function of props → UI
+   - No side effects that reach beyond component boundaries
 
-The hoisting algorithm is applied at the boundary between Presentation and Domain, ensuring that presentation components remain truly context-free while domain logic remains centralized.
+2. **Domain Container**
+   - Owns extracted concerns (state, data, side effects)
+   - Orchestrates calls to data layer
+   - Transforms domain data into presentation props
+   - Manages business logic and workflows
 
-## The Algorithm: Step-by-Step
+This separation is achieved through **dependency inversion**: instead of the component reaching out for dependencies, dependencies are injected into the component.
 
-### Step 1: Identify External Dependencies
+## Why Hoisting Creates Portability
 
-Scan the component for any dependency that reaches outside the component's local scope:
+### Breaking Environmental Bindings
 
-#### 1a. Non-Local State
-- Context consumers (e.g., `useContext`, `useSelector`)
-- Global state hooks (e.g., `useRecoilState`, `useAtom`)
-- Router hooks (e.g., `useParams`, `useNavigate`, `useLocation`)
-- Authentication hooks (e.g., `useAuth`, `useUser`)
+Components without hoisting are **environmentally coupled** to specific:
 
-#### 1b. Data Fetching
-- API calls (e.g., `fetch`, `axios`)
-- GraphQL queries/mutations (e.g., `useQuery`, `useMutation`)
-- Any hook that performs network requests
-- Data loading side effects
+- **Authentication systems**: `useAuth()` assumes a specific auth provider
+- **Routing libraries**: `useNavigate()` binds to React Router
+- **State management**: `useSelector()` requires Redux
+- **API clients**: Direct `fetch()` calls bind to specific endpoints
+- **Service integrations**: Analytics, logging, error tracking
 
-#### 1c. Side-Effectful Handlers
-- Handlers that modify non-local state
-- Handlers that trigger API calls
-- Handlers that navigate or manipulate the router
-- Handlers that interact with external services
+Each of these creates a **hard dependency** on environmental infrastructure.
 
-#### What to Keep Internal
-- Local UI state (collapsed/expanded, selected tab, input focus)
-- UI-only side effects (scroll position, animation triggers)
+### Creating Substitutability
+
+Hoisting breaks these hard dependencies by introducing **indirection**:
+
+```typescript
+// Hard dependency (environmentally coupled)
+function Component() {
+  const data = useQuery(GET_DATA); // Bound to GraphQL client
+  const user = useAuth(); // Bound to auth system
+  return <UI />;
+}
+
+// Indirection (substitutable)
+function Component({ data, user }: Props) {
+  return <UI />;
+}
+```
+
+The component now depends only on the **shape of props**, not their source. Any system that can provide props matching the interface can render this component.
+
+### Enabling Composition
+
+Hoisting enables **compositional flexibility** because:
+
+1. **Multiple consumption contexts**: The same component works in app A, app B, and Storybook
+2. **Different data sources**: Props can come from GraphQL, REST, mock data, or localStorage
+3. **Varied orchestration**: Different containers can compose the same component differently
+4. **Independent evolution**: Presentation and domain can change independently
+
+## Relationship to Layer Separation
+
+Hoisting is the **practical technique** for enforcing architectural layer boundaries:
+
+### Presentation Layer
+
+After hoisting, presentation contains:
+- Components that receive props (data + callbacks)
+- Local UI state (collapsed, selected, focused)
 - Derived values calculated from props
-- Event handlers that only manipulate local state
+- UI-only side effects (scroll, animation)
 
-### Step 2: Convert Dependencies to Props Interface
+**No:**
+- Direct data fetching
+- Global state access
+- Router manipulation
+- External service calls
 
-Transform each identified external dependency into a prop that will be injected from the parent:
+### Domain Layer
 
-#### 2a. State → Data Props
+Hoisting relocates concerns to domain:
+- Business logic and workflows
+- State management and orchestration
+- Data fetching coordination
+- Side effect execution
+
+**Interface:** Provides props to presentation, calls data layer
+
+### Data Layer
+
+Unaffected by hoisting (already isolated):
+- API clients and data access
+- DTO transformations
+- Network request handling
+
+**Interface:** Provides functions to domain
+
+### The Boundary
+
+Hoisting operates at the **Domain ← → Presentation boundary**, establishing a clean contract:
+
+```
+Data Layer
+    ↓ (function calls)
+Domain Layer
+    ↓ (props: data + callbacks)
+Presentation Layer
+```
+
+## Execution Principles
+
+### Principle 1: Dependency Identification
+
+**Objective:** Distinguish between **local concerns** (keep) and **external concerns** (hoist).
+
+**Technical criteria for external concerns:**
+
+- **Scope violation**: Reaches beyond component's lexical scope
+- **Side effect propagation**: Affects state outside component tree
+- **Environmental coupling**: Depends on context/provider higher in tree
+- **Network dependency**: Performs or triggers I/O operations
+
+**Decision framework:**
+
+```
+Concern has effect outside component?
+├─ No → Local concern (keep internal)
+└─ Yes → External concern (hoist)
+    ├─ Affects parent state? → Hoist
+    ├─ Triggers network? → Hoist
+    ├─ Uses context/global state? → Hoist
+    └─ Navigates router? → Hoist
+```
+
+### Principle 2: Interface Design
+
+**Objective:** Create a **minimal, stable interface** between layers.
+
+**Technical considerations:**
+
+**Props should be:**
+- **Serializable**: Can be logged, stored, transmitted
+- **Stateless**: No hidden mutable state
+- **Type-safe**: Fully typed with TypeScript
+- **Self-contained**: No external type dependencies
+
+**Anti-patterns:**
+- Passing class instances with methods
+- Leaking internal library types (e.g., `FormikValues`)
+- Using `any` or weak types
+- Coupling to specific data structures
+
+**Interface stability:**
+
+The props interface is a **contract**. Breaking changes to this contract break all consumers. Design with stability in mind:
+
 ```typescript
-// Before: Direct context access
-const { user } = useAuth();
-const { items } = useSelector(state => state.items);
-
-// After: Props interface
-interface ComponentProps {
-  user: User;
+// Stable: Clear, typed, minimal
+interface Props {
   items: Item[];
+  onSelect: (id: string) => void;
+}
+
+// Unstable: Leaky, coupled, complex
+interface Props {
+  store: ReduxStore; // Leaks Redux
+  formik: FormikBag; // Leaks Formik
+  onSelect: (item: any, context: any) => any; // Weak types
 }
 ```
 
-#### 2b. Data Fetching → Data Props + Loading States
+### Principle 3: Concern Relocation
+
+**Objective:** Move external concerns to domain while **preserving behavior**.
+
+**Technical approach:**
+
+1. **Closure over dependencies**: Domain container captures concerns in closures
+2. **Callback stabilization**: Use `useCallback` to prevent unnecessary re-renders
+3. **State co-location**: Group related state together
+4. **Effect isolation**: Each effect should have single responsibility
+
+**Example:**
+
 ```typescript
-// Before: Direct fetching
-const { data, loading, error } = useQuery(GET_ITEMS);
-
-// After: Props interface
-interface ComponentProps {
-  items: Item[];
-  isLoading: boolean;
-  error?: Error;
-}
-```
-
-#### 2c. Handlers → Callback Props
-```typescript
-// Before: Direct state manipulation
-const dispatch = useDispatch();
-const handleDelete = (id: string) => {
-  dispatch(deleteItem(id));
-};
-
-// After: Props interface
-interface ComponentProps {
-  onDeleteItem: (id: string) => void;
-}
-```
-
-#### 2d. Design the Complete Props Interface
-```typescript
-interface ComponentProps {
-  // Data
-  items: Item[];
-  user: User;
-  
-  // Loading states
-  isLoading: boolean;
-  error?: Error;
-  
-  // Callbacks
-  onDeleteItem: (id: string) => void;
-  onUpdateItem: (id: string, updates: Partial<Item>) => void;
-  onRefresh: () => void;
-}
-```
-
-### Step 3: Move Ownership to Domain Layer
-
-Create a domain container (hook or component) that owns the hoisted concerns and provides them to the presentation component:
-
-#### 3a. Create a Domain Hook
-```typescript
-// domain/useItemManager.ts
-export function useItemManager() {
-  const { user } = useAuth();
-  const dispatch = useDispatch();
-  const items = useSelector(state => state.items);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error>();
-
-  const handleDeleteItem = useCallback(async (id: string) => {
-    setIsLoading(true);
-    try {
-      await deleteItem(id); // Data layer call
-      dispatch(removeItem(id));
-    } catch (err) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [dispatch]);
-
-  const handleUpdateItem = useCallback(async (id: string, updates: Partial<Item>) => {
-    setIsLoading(true);
-    try {
-      const updated = await updateItem(id, updates); // Data layer call
-      dispatch(setItem(updated));
-    } catch (err) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [dispatch]);
-
-  const handleRefresh = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const fresh = await fetchItems(); // Data layer call
-      dispatch(setItems(fresh));
-    } catch (err) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [dispatch]);
-
-  return {
-    items,
-    user,
-    isLoading,
-    error,
-    onDeleteItem: handleDeleteItem,
-    onUpdateItem: handleUpdateItem,
-    onRefresh: handleRefresh,
-  };
-}
-```
-
-#### 3b. Create a Domain Container Component
-```typescript
-// domain/ItemManagerContainer.tsx
-export function ItemManagerContainer() {
-  const domainProps = useItemManager();
-  
-  return <ItemList {...domainProps} />;
-}
-```
-
-#### 3c. Alternative: Inline Container
-```typescript
-// For simple cases, the container can be inline
-export function ItemManagerPage() {
-  const domainProps = useItemManager();
-  
-  return (
-    <PageLayout>
-      <ItemList {...domainProps} />
-    </PageLayout>
-  );
-}
-```
-
-## Implementation Details
-
-### Identifying State That Should Be Hoisted vs Local
-
-Use this decision tree:
-
-1. **Does the state affect anything outside this component?**
-   - Yes → Hoist it
-   - No → Continue to question 2
-
-2. **Does the state need to persist across unmount/remount?**
-   - Yes → Hoist it
-   - No → Continue to question 3
-
-3. **Is the state derived from external data sources?**
-   - Yes → Hoist it
-   - No → Keep it local
-
-4. **Is the state purely for UI presentation (collapsed, selected, focused)?**
-   - Yes → Keep it local
-   - No → Hoist it
-
-**Examples of Local State:**
-- Modal open/closed
-- Dropdown expanded/collapsed
-- Selected tab index
-- Form input values (before submission)
-- Hover/focus states
-- Animation states
-
-**Examples of Hoisted State:**
-- User authentication status
-- Fetched data from APIs
-- Form submission results
-- Navigation state
-- Shopping cart contents
-- Application preferences
-
-### Refactoring Patterns for Common Scenarios
-
-#### Pattern 1: Form with API Submission
-
-**Before:**
-```typescript
-function UserForm() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      await api.updateUser({ name, email });
-      toast.success('Saved!');
-    } catch (err) {
-      toast.error('Failed to save');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <input value={name} onChange={e => setName(e.target.value)} />
-      <input value={email} onChange={e => setEmail(e.target.value)} />
-      <button disabled={submitting}>Save</button>
-    </form>
-  );
-}
-```
-
-**After (Presentation):**
-```typescript
-interface UserFormProps {
-  initialName: string;
-  initialEmail: string;
-  isSubmitting: boolean;
-  onSubmit: (data: { name: string; email: string }) => void;
+// Presentation: Pure, stable
+function ItemList({ items, onDelete }: Props) {
+  return <ul>{items.map(item => 
+    <Item key={item.id} item={item} onDelete={onDelete} />
+  )}</ul>;
 }
 
-function UserForm({ initialName, initialEmail, isSubmitting, onSubmit }: UserFormProps) {
-  const [name, setName] = useState(initialName); // Local: form state
-  const [email, setEmail] = useState(initialEmail); // Local: form state
+// Domain: Encapsulates complexity
+function useItemList() {
+  const items = useSelector(selectItems); // External state
+  const dispatch = useDispatch(); // External action
   
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    onSubmit({ name, email });
-  };
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <input value={name} onChange={e => setName(e.target.value)} />
-      <input value={email} onChange={e => setEmail(e.target.value)} />
-      <button disabled={isSubmitting}>Save</button>
-    </form>
-  );
-}
-```
-
-**After (Domain):**
-```typescript
-function UserFormContainer() {
-  const { user } = useAuth();
-  const [submitting, setSubmitting] = useState(false);
-  
-  const handleSubmit = async (data: { name: string; email: string }) => {
-    setSubmitting(true);
-    try {
-      await updateUser(user.id, data); // Data layer
-      toast.success('Saved!');
-    } catch (err) {
-      toast.error('Failed to save');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  return (
-    <UserForm
-      initialName={user.name}
-      initialEmail={user.email}
-      isSubmitting={submitting}
-      onSubmit={handleSubmit}
-    />
-  );
-}
-```
-
-#### Pattern 2: List with Filtering and Actions
-
-**Before:**
-```typescript
-function ItemList() {
-  const { items } = useItems();
-  const [filter, setFilter] = useState('');
-  const dispatch = useDispatch();
-  
-  const filtered = items.filter(item => 
-    item.name.toLowerCase().includes(filter.toLowerCase())
-  );
-  
-  const handleDelete = (id: string) => {
-    dispatch(deleteItem(id));
-  };
-  
-  return (
-    <div>
-      <input 
-        value={filter} 
-        onChange={e => setFilter(e.target.value)} 
-        placeholder="Filter..."
-      />
-      {filtered.map(item => (
-        <ItemCard 
-          key={item.id} 
-          item={item} 
-          onDelete={() => handleDelete(item.id)}
-        />
-      ))}
-    </div>
-  );
-}
-```
-
-**After (Presentation):**
-```typescript
-interface ItemListProps {
-  items: Item[];
-  onDeleteItem: (id: string) => void;
-}
-
-function ItemList({ items, onDeleteItem }: ItemListProps) {
-  const [filter, setFilter] = useState(''); // Local: UI filter
-  
-  const filtered = items.filter(item => 
-    item.name.toLowerCase().includes(filter.toLowerCase())
-  );
-  
-  return (
-    <div>
-      <input 
-        value={filter} 
-        onChange={e => setFilter(e.target.value)} 
-        placeholder="Filter..."
-      />
-      {filtered.map(item => (
-        <ItemCard 
-          key={item.id} 
-          item={item} 
-          onDelete={() => onDeleteItem(item.id)}
-        />
-      ))}
-    </div>
-  );
-}
-```
-
-**After (Domain):**
-```typescript
-function ItemListContainer() {
-  const { items } = useItems();
-  const dispatch = useDispatch();
-  
+  // Stabilized callback (won't cause re-renders)
   const handleDelete = useCallback((id: string) => {
     dispatch(deleteItem(id));
   }, [dispatch]);
   
-  return <ItemList items={items} onDeleteItem={handleDelete} />;
+  return { items, onDelete: handleDelete };
 }
 ```
 
-#### Pattern 3: Component with Navigation
+## Technical Considerations
 
-**Before:**
+### State Management
+
+**Question:** What state belongs where?
+
+**Technical criterion: State scope**
+
+- **Component-scoped state**: Local to component (keep)
+  - UI interactions: hover, focus, expanded
+  - Temporary input: text field values before submission
+  - View preferences: selected tab, sort order
+
+- **Application-scoped state**: Beyond component (hoist)
+  - User session data
+  - Fetched resources
+  - Global application state
+  - Cross-component coordination
+
+**Implementation:**
+
 ```typescript
-function ItemCard({ item }: { item: Item }) {
-  const navigate = useNavigate();
-  
-  const handleClick = () => {
-    navigate(`/items/${item.id}`);
-  };
-  
-  return (
-    <div onClick={handleClick}>
-      <h3>{item.name}</h3>
-      <p>{item.description}</p>
-    </div>
-  );
+// Component-scoped: useState in presentation
+function Component({ data }: Props) {
+  const [expanded, setExpanded] = useState(false); // Local
+  return <div>...</div>;
+}
+
+// Application-scoped: useState in domain
+function useComponent() {
+  const [data, setData] = useState([]); // Hoisted
+  useEffect(() => {
+    fetchData().then(setData);
+  }, []);
+  return { data };
 }
 ```
 
-**After (Presentation):**
+### Side Effect Management
+
+**Question:** Where should side effects execute?
+
+**Technical criterion: Effect scope**
+
+- **UI-only effects**: Presentation layer
+  - Scroll to element
+  - Focus input
+  - Trigger animation
+  - Update canvas
+
+- **Domain effects**: Domain layer
+  - Data fetching
+  - Analytics tracking
+  - Error reporting
+  - State synchronization
+
+**Implementation pattern:**
+
 ```typescript
-interface ItemCardProps {
-  item: Item;
-  onSelect: (id: string) => void;
-}
-
-function ItemCard({ item, onSelect }: ItemCardProps) {
-  return (
-    <div onClick={() => onSelect(item.id)}>
-      <h3>{item.name}</h3>
-      <p>{item.description}</p>
-    </div>
-  );
-}
-```
-
-**After (Domain):**
-```typescript
-function ItemCardContainer({ item }: { item: Item }) {
-  const navigate = useNavigate();
-  
-  const handleSelect = useCallback((id: string) => {
-    navigate(`/items/${id}`);
-  }, [navigate]);
-  
-  return <ItemCard item={item} onSelect={handleSelect} />;
-}
-```
-
-### Handling Side Effects and Data Fetching
-
-#### Data Fetching Should Live in Domain
-
-**Domain Hook Pattern:**
-```typescript
-// domain/useItemData.ts
-export function useItemData(itemId: string) {
-  const [item, setItem] = useState<Item | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+// UI-only effect: stays in presentation
+function Component() {
+  const ref = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    let cancelled = false;
-    
-    async function load() {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const data = await fetchItem(itemId); // Data layer
-        if (!cancelled) {
-          setItem(data);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-    
-    load();
-    
-    return () => {
-      cancelled = true;
-    };
-  }, [itemId]);
+    ref.current?.scrollIntoView(); // UI-only
+  }, []);
   
-  return { item, isLoading, error };
+  return <div ref={ref}>...</div>;
+}
+
+// Domain effect: lives in domain hook
+function useComponent() {
+  const [data, setData] = useState([]);
+  
+  useEffect(() => {
+    fetchData().then(data => {
+      setData(data);
+      analytics.track('data_loaded'); // Domain effect
+    });
+  }, []);
+  
+  return { data };
 }
 ```
 
-**Using the Domain Hook:**
+### Callback Design
+
+**Question:** How should callbacks be structured?
+
+**Technical principles:**
+
+1. **Single responsibility**: Each callback does one thing
+2. **Stable identity**: Use `useCallback` for referential stability
+3. **Error handling**: Domain handles errors, presentation reports them
+4. **Async coordination**: Domain manages loading states
+
+**Pattern:**
+
 ```typescript
-function ItemDetailContainer({ itemId }: { itemId: string }) {
-  const { item, isLoading, error } = useItemData(itemId);
-  
-  if (isLoading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage error={error} />;
-  if (!item) return <NotFound />;
-  
-  return <ItemDetail item={item} />;
+// Presentation: Invokes callback, displays state
+function Component({ onSave, isSaving }: Props) {
+  return (
+    <button onClick={() => onSave(data)} disabled={isSaving}>
+      {isSaving ? 'Saving...' : 'Save'}
+    </button>
+  );
 }
-```
 
-#### Side Effects Follow the Same Pattern
-
-```typescript
-// Domain manages side effects
-function ItemActionsContainer({ itemId }: { itemId: string }) {
+// Domain: Handles complexity
+function useComponent() {
   const [saving, setSaving] = useState(false);
   
-  const handleSave = useCallback(async (updates: Partial<Item>) => {
+  const handleSave = useCallback(async (data: Data) => {
     setSaving(true);
     try {
-      await updateItem(itemId, updates); // Data layer
-      analytics.track('item_updated'); // Side effect in domain
+      await saveData(data); // Data layer
+      toast.success('Saved');
+    } catch (err) {
+      toast.error('Failed');
+      throw err; // Presentation might need to know
     } finally {
       setSaving(false);
     }
-  }, [itemId]);
-  
-  return <ItemActions onSave={handleSave} isSaving={saving} />;
-}
-```
-
-### Testing Hoisted Components
-
-One of the major benefits of hoisting is improved testability. Presentation components can be tested without mocking complex application context.
-
-#### Testing Presentation Components
-
-```typescript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ItemList } from './ItemList';
-
-describe('ItemList', () => {
-  const mockItems = [
-    { id: '1', name: 'Item 1', description: 'First' },
-    { id: '2', name: 'Item 2', description: 'Second' },
-  ];
-  
-  it('renders all items', () => {
-    const onDelete = jest.fn();
-    render(<ItemList items={mockItems} onDeleteItem={onDelete} />);
-    
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
-    expect(screen.getByText('Item 2')).toBeInTheDocument();
-  });
-  
-  it('calls onDeleteItem when delete is clicked', () => {
-    const onDelete = jest.fn();
-    render(<ItemList items={mockItems} onDeleteItem={onDelete} />);
-    
-    const deleteButtons = screen.getAllByText('Delete');
-    fireEvent.click(deleteButtons[0]);
-    
-    expect(onDelete).toHaveBeenCalledWith('1');
-  });
-  
-  it('filters items based on search input', () => {
-    const onDelete = jest.fn();
-    render(<ItemList items={mockItems} onDeleteItem={onDelete} />);
-    
-    const searchInput = screen.getByPlaceholderText('Filter...');
-    fireEvent.change(searchInput, { target: { value: 'Item 1' } });
-    
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
-    expect(screen.queryByText('Item 2')).not.toBeInTheDocument();
-  });
-});
-```
-
-#### Testing Domain Logic
-
-```typescript
-import { renderHook, act } from '@testing-library/react';
-import { useItemManager } from './useItemManager';
-import * as dataLayer from '../data/items';
-
-jest.mock('../data/items');
-
-describe('useItemManager', () => {
-  it('loads items on mount', async () => {
-    const mockItems = [{ id: '1', name: 'Item 1' }];
-    (dataLayer.fetchItems as jest.Mock).mockResolvedValue(mockItems);
-    
-    const { result, waitForNextUpdate } = renderHook(() => useItemManager());
-    
-    expect(result.current.isLoading).toBe(true);
-    
-    await waitForNextUpdate();
-    
-    expect(result.current.items).toEqual(mockItems);
-    expect(result.current.isLoading).toBe(false);
-  });
-  
-  it('handles delete action', async () => {
-    (dataLayer.deleteItem as jest.Mock).mockResolvedValue(undefined);
-    
-    const { result } = renderHook(() => useItemManager());
-    
-    await act(async () => {
-      await result.current.onDeleteItem('1');
-    });
-    
-    expect(dataLayer.deleteItem).toHaveBeenCalledWith('1');
-  });
-});
-```
-
-## Before/After Examples
-
-### Complete Example: Task Manager Component
-
-#### Before: Mixed Concerns
-
-```typescript
-// TaskManager.tsx - Tightly coupled to application
-import { useState, useEffect } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useTasks } from '../hooks/useTasks';
-import { api } from '../api/client';
-
-function TaskManager() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const { tasks, refetch } = useTasks();
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'completed'>('all');
-  const [creating, setCreating] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    }
-  }, [user, navigate]);
-  
-  const handleCreateTask = async () => {
-    if (!newTaskTitle.trim()) return;
-    
-    setCreating(true);
-    try {
-      await api.post('/tasks', { 
-        title: newTaskTitle,
-        userId: user.id 
-      });
-      setNewTaskTitle('');
-      await refetch();
-    } catch (err) {
-      alert('Failed to create task');
-    } finally {
-      setCreating(false);
-    }
-  };
-  
-  const handleToggleComplete = async (taskId: string, completed: boolean) => {
-    try {
-      await api.patch(`/tasks/${taskId}`, { completed: !completed });
-      await refetch();
-    } catch (err) {
-      alert('Failed to update task');
-    }
-  };
-  
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await api.delete(`/tasks/${taskId}`);
-      await refetch();
-    } catch (err) {
-      alert('Failed to delete task');
-    }
-  };
-  
-  const filteredTasks = tasks.filter(task => {
-    if (selectedTab === 'active') return !task.completed;
-    if (selectedTab === 'completed') return task.completed;
-    return true;
-  });
-  
-  return (
-    <div className="task-manager">
-      <h1>Tasks for {user?.name}</h1>
-      
-      <div className="tabs">
-        <button 
-          className={selectedTab === 'all' ? 'active' : ''}
-          onClick={() => setSelectedTab('all')}
-        >
-          All
-        </button>
-        <button 
-          className={selectedTab === 'active' ? 'active' : ''}
-          onClick={() => setSelectedTab('active')}
-        >
-          Active
-        </button>
-        <button 
-          className={selectedTab === 'completed' ? 'active' : ''}
-          onClick={() => setSelectedTab('completed')}
-        >
-          Completed
-        </button>
-      </div>
-      
-      <div className="create-task">
-        <input
-          value={newTaskTitle}
-          onChange={e => setNewTaskTitle(e.target.value)}
-          placeholder="New task..."
-          disabled={creating}
-        />
-        <button onClick={handleCreateTask} disabled={creating}>
-          {creating ? 'Creating...' : 'Add Task'}
-        </button>
-      </div>
-      
-      <ul className="task-list">
-        {filteredTasks.map(task => (
-          <li key={task.id}>
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={() => handleToggleComplete(task.id, task.completed)}
-            />
-            <span className={task.completed ? 'completed' : ''}>
-              {task.title}
-            </span>
-            <button onClick={() => handleDeleteTask(task.id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default TaskManager;
-```
-
-#### After: Clean Presentation Component
-
-```typescript
-// presentation/TaskManager.tsx - Context-free, portable
-import { useState } from 'react';
-
-export interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-export interface TaskManagerProps {
-  userName: string;
-  tasks: Task[];
-  isCreating: boolean;
-  onCreateTask: (title: string) => void;
-  onToggleComplete: (taskId: string) => void;
-  onDeleteTask: (taskId: string) => void;
-}
-
-export function TaskManager({
-  userName,
-  tasks,
-  isCreating,
-  onCreateTask,
-  onToggleComplete,
-  onDeleteTask,
-}: TaskManagerProps) {
-  // Local UI state only
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'completed'>('all');
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  
-  const handleCreate = () => {
-    if (newTaskTitle.trim()) {
-      onCreateTask(newTaskTitle);
-      setNewTaskTitle('');
-    }
-  };
-  
-  const filteredTasks = tasks.filter(task => {
-    if (selectedTab === 'active') return !task.completed;
-    if (selectedTab === 'completed') return task.completed;
-    return true;
-  });
-  
-  return (
-    <div className="task-manager">
-      <h1>Tasks for {userName}</h1>
-      
-      <div className="tabs">
-        <button 
-          className={selectedTab === 'all' ? 'active' : ''}
-          onClick={() => setSelectedTab('all')}
-        >
-          All
-        </button>
-        <button 
-          className={selectedTab === 'active' ? 'active' : ''}
-          onClick={() => setSelectedTab('active')}
-        >
-          Active
-        </button>
-        <button 
-          className={selectedTab === 'completed' ? 'active' : ''}
-          onClick={() => setSelectedTab('completed')}
-        >
-          Completed
-        </button>
-      </div>
-      
-      <div className="create-task">
-        <input
-          value={newTaskTitle}
-          onChange={e => setNewTaskTitle(e.target.value)}
-          placeholder="New task..."
-          disabled={isCreating}
-          onKeyPress={e => e.key === 'Enter' && handleCreate()}
-        />
-        <button onClick={handleCreate} disabled={isCreating}>
-          {isCreating ? 'Creating...' : 'Add Task'}
-        </button>
-      </div>
-      
-      <ul className="task-list">
-        {filteredTasks.map(task => (
-          <li key={task.id}>
-            <input
-              type="checkbox"
-              checked={task.completed}
-              onChange={() => onToggleComplete(task.id)}
-            />
-            <span className={task.completed ? 'completed' : ''}>
-              {task.title}
-            </span>
-            <button onClick={() => onDeleteTask(task.id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
-
-#### After: Domain Container
-
-```typescript
-// domain/TaskManagerContainer.tsx
-import { useState, useCallback } from 'react';
-import { useAuth } from '../auth/AuthContext';
-import { useTaskManager } from './useTaskManager';
-import { TaskManager } from '../presentation/TaskManager';
-
-export function TaskManagerContainer() {
-  const { user } = useAuth();
-  const {
-    tasks,
-    isLoading,
-    createTask,
-    toggleComplete,
-    deleteTask,
-  } = useTaskManager(user?.id);
-  
-  const [isCreating, setIsCreating] = useState(false);
-  
-  const handleCreateTask = useCallback(async (title: string) => {
-    setIsCreating(true);
-    try {
-      await createTask(title);
-    } finally {
-      setIsCreating(false);
-    }
-  }, [createTask]);
-  
-  if (!user) {
-    return <div>Please log in</div>;
-  }
-  
-  if (isLoading) {
-    return <div>Loading tasks...</div>;
-  }
-  
-  return (
-    <TaskManager
-      userName={user.name}
-      tasks={tasks}
-      isCreating={isCreating}
-      onCreateTask={handleCreateTask}
-      onToggleComplete={toggleComplete}
-      onDeleteTask={deleteTask}
-    />
-  );
-}
-```
-
-#### After: Domain Hook
-
-```typescript
-// domain/useTaskManager.ts
-import { useState, useEffect, useCallback } from 'react';
-import { fetchTasks, createTask as apiCreateTask, updateTask, deleteTask as apiDeleteTask } from '../data/tasks';
-import type { Task } from '../presentation/TaskManager';
-
-export function useTaskManager(userId: string | undefined) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  
-  const loadTasks = useCallback(async () => {
-    if (!userId) return;
-    
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await fetchTasks(userId);
-      setTasks(data);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-  
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
-  
-  const createTask = useCallback(async (title: string) => {
-    if (!userId) return;
-    
-    try {
-      const newTask = await apiCreateTask({ title, userId });
-      setTasks(prev => [...prev, newTask]);
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
-  }, [userId]);
-  
-  const toggleComplete = useCallback(async (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-    
-    try {
-      const updated = await updateTask(taskId, { completed: !task.completed });
-      setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
-  }, [tasks]);
-  
-  const deleteTask = useCallback(async (taskId: string) => {
-    try {
-      await apiDeleteTask(taskId);
-      setTasks(prev => prev.filter(t => t.id !== taskId));
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    }
   }, []);
   
-  return {
-    tasks,
-    isLoading,
-    error,
-    createTask,
-    toggleComplete,
-    deleteTask,
-    refresh: loadTasks,
-  };
+  return { onSave: handleSave, isSaving: saving };
 }
 ```
 
-#### After: Data Layer
+### Data Flow Architecture
+
+**Question:** How does data flow through layers?
+
+**Technical model: Unidirectional flow**
+
+```
+External APIs/Services
+    ↓
+Data Layer (fetch, transform)
+    ↓
+Domain Layer (orchestrate, manage state)
+    ↓
+Presentation Layer (render)
+    ↑ (callbacks)
+Domain Layer (handle events)
+    ↑ (mutations)
+Data Layer (persist changes)
+    ↑
+External APIs/Services
+```
+
+**Key insight:** Data flows down, events flow up.
+
+- **Down:** State and data passed as props
+- **Up:** Callbacks invoked to trigger actions
+
+This creates a **predictable data flow** that's easy to trace and debug.
+
+### Testing Strategy
+
+**Question:** How does hoisting affect testing?
+
+**Technical advantage: Independent testability**
+
+**Presentation testing:**
+- **No mocking needed**: Just pass props
+- **Fast execution**: No async operations
+- **Predictable**: Pure function of inputs
+- **Visual testing**: Easy to render in Storybook
 
 ```typescript
-// data/tasks.ts
-import { api } from './client';
+// Simple, no mocks
+test('renders items', () => {
+  render(<ItemList items={mockItems} onDelete={jest.fn()} />);
+  expect(screen.getByText('Item 1')).toBeInTheDocument();
+});
+```
 
-export interface TaskDTO {
-  id: string;
-  title: string;
-  completed: boolean;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+**Domain testing:**
+- **Mock data layer**: Stub API calls
+- **Test logic**: Verify state management
+- **Test effects**: Check side effects execute
+- **Test error handling**: Verify error paths
 
-export interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
+```typescript
+// Mock only data layer
+jest.mock('../data/items');
 
-// Transform DTOs to domain models
-function toTask(dto: TaskDTO): Task {
-  return {
-    id: dto.id,
-    title: dto.title,
-    completed: dto.completed,
-  };
-}
+test('loads items', async () => {
+  (fetchItems as jest.Mock).mockResolvedValue(mockItems);
+  const { result } = renderHook(() => useItemManager());
+  await waitFor(() => expect(result.current.items).toEqual(mockItems));
+});
+```
 
-export async function fetchTasks(userId: string): Promise<Task[]> {
-  const response = await api.get<TaskDTO[]>(`/tasks?userId=${userId}`);
-  return response.data.map(toTask);
-}
+## Advanced Patterns
 
-export async function createTask(data: { title: string; userId: string }): Promise<Task> {
-  const response = await api.post<TaskDTO>('/tasks', data);
-  return toTask(response.data);
-}
+### Graduated Hoisting
 
-export async function updateTask(taskId: string, updates: Partial<Task>): Promise<Task> {
-  const response = await api.patch<TaskDTO>(`/tasks/${taskId}`, updates);
-  return toTask(response.data);
-}
+Not all components need full hoisting. Apply hoisting **proportional to portability needs**:
 
-export async function deleteTask(taskId: string): Promise<void> {
-  await api.delete(`/tasks/${taskId}`);
+**Level 1: No hoisting** (component-specific, one-off)
+- Acceptable for app-specific pages
+- Tightly coupled to environment
+- Fast to build, not reusable
+
+**Level 2: Partial hoisting** (some portability)
+- Extract data fetching
+- Keep some context usage
+- Moderate reusability
+
+**Level 3: Full hoisting** (maximum portability)
+- All external dependencies hoisted
+- Complete context-freedom
+- Maximum reusability, more upfront work
+
+**Choose based on:** How likely is reuse? How stable is the API?
+
+### Composition Patterns
+
+Hoisted components enable powerful composition:
+
+**Pattern 1: Parallel composition**
+```typescript
+function Dashboard() {
+  const tasks = useTaskManager();
+  const projects = useProjectManager();
+  const users = useUserManager();
+  
+  return (
+    <>
+      <TaskList {...tasks} />
+      <ProjectList {...projects} />
+      <UserList {...users} />
+    </>
+  );
 }
 ```
 
-### Key Improvements After Hoisting
+**Pattern 2: Nested composition**
+```typescript
+function ProjectDetail({ projectId }: Props) {
+  const project = useProject(projectId);
+  const tasks = useProjectTasks(projectId);
+  
+  return (
+    <ProjectCard {...project}>
+      <TaskList {...tasks} />
+    </ProjectCard>
+  );
+}
+```
 
-1. **Presentation Component (`TaskManager`)**:
-   - Can be rendered in Storybook with mock props
-   - Can be tested without mocking auth, API, or navigation
-   - Can be used in any application that provides the props
-   - All business logic removed, pure UI rendering
+**Pattern 3: Conditional composition**
+```typescript
+function AdaptiveView() {
+  const data = useData();
+  
+  if (data.type === 'list') return <ListView {...data} />;
+  if (data.type === 'grid') return <GridView {...data} />;
+  return <TableView {...data} />;
+}
+```
 
-2. **Domain Container (`TaskManagerContainer`)**:
-   - Owns all application-specific logic
-   - Orchestrates data fetching and state management
-   - Handles loading states and errors
-   - Can be easily modified without touching UI
+### Props Forwarding
 
-3. **Domain Hook (`useTaskManager`)**:
-   - Reusable across multiple components
-   - Testable in isolation
-   - Encapsulates business logic
-   - Clean separation of concerns
+When composing multiple layers, props may need to flow through intermediaries:
 
-4. **Data Layer (`tasks.ts`)**:
-   - Single source of truth for API calls
-   - Transforms DTOs to domain models
-   - Can be swapped for mock implementation
-   - No UI or business logic
+**Anti-pattern: Prop drilling**
+```typescript
+// Don't pass through many levels
+<A data={data}>
+  <B data={data}>
+    <C data={data}>
+      <D data={data} /> {/* Finally used here */}
+    </C>
+  </B>
+</A>
+```
 
-This separation enables each layer to evolve independently and be reused in different contexts, achieving true portability.
+**Better: Composition**
+```typescript
+// Domain provides directly to consumer
+function Container() {
+  const data = useData();
+  return (
+    <Layout>
+      <ConsumerComponent data={data} />
+    </Layout>
+  );
+}
+```
 
+**Or: Context for deep trees**
+```typescript
+// For truly shared data across deep trees
+const DataContext = createContext<Data | null>(null);
+
+function Provider() {
+  const data = useData();
+  return (
+    <DataContext.Provider value={data}>
+      <DeepTree />
+    </DataContext.Provider>
+  );
+}
+```
+
+## Performance Implications
+
+### Re-render Optimization
+
+Hoisting affects re-render behavior:
+
+**Challenge:** Props changes trigger re-renders
+
+```typescript
+// Every container re-render creates new callback reference
+function Container() {
+  const handleClick = (id: string) => { /* ... */ }; // New every render!
+  return <Component onClick={handleClick} />;
+}
+```
+
+**Solution:** Stabilize callbacks
+
+```typescript
+function Container() {
+  const handleClick = useCallback((id: string) => {
+    /* ... */
+  }, []); // Stable reference
+  
+  return <Component onClick={handleClick} />;
+}
+```
+
+**Optimization:** Memo presentation components
+
+```typescript
+export const Component = memo(function Component({ items, onClick }: Props) {
+  return <div>...</div>;
+}); // Only re-renders when props actually change
+```
+
+### Data Fetching Patterns
+
+Hoisting centralizes data fetching in domain layer, enabling:
+
+**Pattern 1: Parallel fetching**
+```typescript
+function useDashboard() {
+  const [tasks] = useAsync(() => fetchTasks());
+  const [projects] = useAsync(() => fetchProjects());
+  const [users] = useAsync(() => fetchUsers());
+  
+  return { tasks, projects, users }; // All fetched in parallel
+}
+```
+
+**Pattern 2: Dependent fetching**
+```typescript
+function useProjectDetail(projectId: string) {
+  const [project] = useAsync(() => fetchProject(projectId));
+  const [tasks] = useAsync(
+    () => project ? fetchProjectTasks(project.id) : null,
+    [project]
+  ); // Waits for project
+  
+  return { project, tasks };
+}
+```
+
+**Pattern 3: Cached fetching**
+```typescript
+function useData(id: string) {
+  const cache = useCache();
+  const [data, setData] = useState(() => cache.get(id));
+  
+  useEffect(() => {
+    if (!data) {
+      fetchData(id).then(d => {
+        setData(d);
+        cache.set(id, d);
+      });
+    }
+  }, [id, data, cache]);
+  
+  return data;
+}
+```
+
+## Common Pitfalls
+
+### Over-Hoisting
+
+**Problem:** Hoisting UI-local concerns unnecessarily
+
+```typescript
+// Anti-pattern: Hoisting purely local state
+function Container() {
+  const [expanded, setExpanded] = useState(false); // UI-only!
+  return <Component expanded={expanded} onToggle={setExpanded} />;
+}
+```
+
+**Solution:** Keep UI state local
+
+```typescript
+function Component() {
+  const [expanded, setExpanded] = useState(false); // Belongs here
+  return <div>...</div>;
+}
+```
+
+### Under-Hoisting
+
+**Problem:** Leaving external dependencies in presentation
+
+```typescript
+// Anti-pattern: Leaking context into presentation
+function Component({ items }: Props) {
+  const navigate = useNavigate(); // External dependency!
+  return <div onClick={() => navigate('/items')}>...</div>;
+}
+```
+
+**Solution:** Hoist navigation concern
+
+```typescript
+function Component({ items, onNavigate }: Props) {
+  return <div onClick={onNavigate}>...</div>;
+}
+```
+
+### Interface Leakage
+
+**Problem:** Exposing internal types in props
+
+```typescript
+// Anti-pattern: Leaking Formik types
+interface Props {
+  formik: FormikBag<Values>; // Couples to Formik!
+}
+```
+
+**Solution:** Use domain types
+
+```typescript
+interface Props {
+  values: FormValues;
+  errors: FormErrors;
+  onSubmit: (values: FormValues) => void;
+}
+```
+
+## Summary
+
+The hoisting algorithm is a **systematic technique** for achieving component portability through **concern extraction** and **dependency inversion**.
+
+**Core principles:**
+1. **Identify**: Distinguish local from external concerns
+2. **Interface**: Design stable props contracts
+3. **Relocate**: Move concerns to domain layer
+
+**Technical benefits:**
+- **Portability**: Components work in any compatible environment
+- **Testability**: Each layer tested independently
+- **Composability**: Components combine in flexible ways
+- **Maintainability**: Clear boundaries, stable interfaces
+
+**When to apply:**
+- Building shared component libraries
+- Creating portable feature modules
+- Maximizing test coverage
+- Enabling Storybook documentation
+- Supporting multiple consumption contexts
+
+**Related documentation:**
+- [Guide: Hoisting Refactoring](../guides/hoisting-refactoring-guide.md) - Step-by-step tutorial
+- [Architecture: Three-Layer Pattern](../architecture.md#core-pattern-three-layer-architecture) - Overall architecture
+- [Architecture: Compositional UI](../architecture.md#compositional-ui-techniques) - Composition patterns

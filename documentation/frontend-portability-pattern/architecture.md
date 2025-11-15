@@ -1,5 +1,52 @@
 # Frontend Portability Pattern: Architecture
 
+- [Frontend Portability Pattern: Architecture](#frontend-portability-pattern-architecture)
+  - [Introduction \& Goals](#introduction--goals)
+    - [Primary Goal: Scalable UI in a Monorepo](#primary-goal-scalable-ui-in-a-monorepo)
+    - [Secondary Goal: Cross-Application Portability](#secondary-goal-cross-application-portability)
+    - [Monorepo Context: Apps as Feature-Rich Component Libraries](#monorepo-context-apps-as-feature-rich-component-libraries)
+  - [Monorepo Architecture](#monorepo-architecture)
+    - [Hybrid App/Package Pattern](#hybrid-apppackage-pattern)
+    - [Base UI Component Library](#base-ui-component-library)
+    - [Centralized Storybook](#centralized-storybook)
+    - [Package Dependency Graph \& Boundaries](#package-dependency-graph--boundaries)
+  - [Core Pattern: Three-Layer Architecture](#core-pattern-three-layer-architecture)
+    - [Enabling Strategy: Hoisting](#enabling-strategy-hoisting)
+    - [Data Layer: Frontend API](#data-layer-frontend-api)
+    - [Domain Layer: State Orchestration](#domain-layer-state-orchestration)
+    - [Presentation Layer: Context-Free UI](#presentation-layer-context-free-ui)
+    - [Layer Dependency Rules](#layer-dependency-rules)
+  - [Compositional UI Techniques](#compositional-ui-techniques)
+    - [How Layers Connect Through Composition](#how-layers-connect-through-composition)
+    - [Props Injection Patterns](#props-injection-patterns)
+    - [Container/Component Pattern](#containercomponent-pattern)
+    - [Building Composite Features from Imported Packages](#building-composite-features-from-imported-packages)
+  - [Embedding Scenarios](#embedding-scenarios)
+    - [Scenario 1: Standalone Deployment](#scenario-1-standalone-deployment)
+    - [Scenario 2: Shallow Embedding](#scenario-2-shallow-embedding)
+    - [Scenario 3: Deep Embedding](#scenario-3-deep-embedding)
+    - [Choosing the Right Scenario](#choosing-the-right-scenario)
+  - [Dependency Management](#dependency-management)
+    - [Prerequisites: Environment-Defining Dependencies](#prerequisites-environment-defining-dependencies)
+    - [Internal Dependencies: Implementation Details](#internal-dependencies-implementation-details)
+    - [Version Alignment Strategies in Monorepo](#version-alignment-strategies-in-monorepo)
+    - [Peer Dependencies Considerations](#peer-dependencies-considerations)
+  - [Public API Surface](#public-api-surface)
+    - [Exposing "Sum and Parts"](#exposing-sum-and-parts)
+    - [Package Exports Structure](#package-exports-structure)
+    - [What to Expose vs Keep Internal](#what-to-expose-vs-keep-internal)
+  - [Data Layer Substitution](#data-layer-substitution)
+    - [Interface Contract Preservation](#interface-contract-preservation)
+    - [Implementation 1: Real API (Production)](#implementation-1-real-api-production)
+    - [Implementation 2: Mock API (Testing/Development)](#implementation-2-mock-api-testingdevelopment)
+    - [Implementation 3: LocalStorage API (Offline/Demo)](#implementation-3-localstorage-api-offlinedemo)
+    - [Use Cases for Each Implementation](#use-cases-for-each-implementation)
+    - [Providing the Data Layer to Domain](#providing-the-data-layer-to-domain)
+  - [Summary](#summary)
+    - [Next Steps](#next-steps)
+    - [Additional Resources](#additional-resources)
+
+
 ## Introduction & Goals
 
 ### Primary Goal: Scalable UI in a Monorepo
@@ -206,6 +253,22 @@ graph TB
 
 **Diagram 2**: Three-layer architecture showing the separation between Presentation (context-free UI), Domain (orchestration and state), and Data (API access). Solid arrows show data flow, dashed arrows show interface contracts.
 
+### Enabling Strategy: Hoisting
+
+The three-layer architecture is enabled by **hoisting** - a systematic process of extracting application-specific concerns (data fetching, global state, side effects) from components and moving them to the domain layer. This transforms tightly-coupled components into context-free presentation components that receive all dependencies via props.
+
+Hoisting is what makes components:
+- **Portable**: Can be used in any application that provides the required props
+- **Testable**: Can be tested without mocking complex application infrastructure  
+- **Composable**: Can be combined in ways the original author never envisioned
+- **Documented**: Can be rendered in Storybook with representative data
+
+Without hoisting, components remain bound to specific authentication systems, routing libraries, state management solutions, and API clients. The hoisting strategy breaks these bindings.
+
+**Further reading:**
+- [Technical Strategy: Hoisting Algorithm](./technical-strategy/hoisting-algorithm.md) - Execution details and principles
+- [Guide: Hoisting Refactoring](./guides/hoisting-refactoring-guide.md) - Step-by-step tutorial
+
 ### Data Layer: Frontend API
 
 **Responsibility**: Provide a clean API for accessing and mutating data, isolating all network and persistence concerns.
@@ -336,92 +399,6 @@ Each layer exposes a typed interface:
 
 Changes within a layer don't affect other layers as long as the interface remains stable.
 
-## Technical Strategy: Hoisting Algorithm
-
-The **hoisting algorithm** is the core technical strategy that enables the three-layer architecture and makes components portable. It's a systematic refactoring process that extracts application concerns from components.
-
-### What Hoisting Accomplishes
-
-Hoisting transforms a tightly-coupled component (with embedded data fetching, global state access, and side effects) into:
-
-1. A **clean presentation component** that receives all dependencies via props
-2. A **domain container** that owns the hoisted concerns and provides them to the presentation
-
-This separation is what makes components:
-
-- Portable across applications
-- Testable in isolation
-- Reusable in different contexts
-- Documented in Storybook
-
-### Why It's Central to Portability
-
-Without hoisting, components are bound to specific:
-
-- Authentication systems
-- Routing libraries
-- State management solutions
-- API clients
-- Application context
-
-Hoisting breaks these bindings, making components **context-free**. A hoisted component can be:
-
-- Rendered in any app that provides the required props
-- Tested without mocking complex application infrastructure
-- Documented in Storybook with representative data
-- Reused in contexts the original author never envisioned
-
-### The Hoisting Process Visualized
-
-```mermaid
-graph TB
-    subgraph "Before: Mixed Concerns"
-        BC[Component with Embedded Concerns<br/>- Direct API calls<br/>- Global state access<br/>- Router hooks<br/>- Business logic]
-    end
-    
-    subgraph "Hoisting Process"
-        Step1[Step 1: Identify<br/>External Dependencies]
-        Step2[Step 2: Convert to<br/>Props Interface]
-        Step3[Step 3: Move to<br/>Domain Layer]
-    end
-    
-    subgraph "After: Separated Concerns"
-        PC[Presentation Component<br/>- Props only<br/>- Local UI state<br/>- Pure rendering]
-        DC[Domain Container<br/>- Business logic<br/>- State management<br/>- Data fetching]
-        DL[Data Layer<br/>- API calls<br/>- Persistence]
-    end
-    
-    BC --> Step1
-    Step1 --> Step2
-    Step2 --> Step3
-    Step3 --> DC
-    DC --> PC
-    DC --> DL
-    
-    style BC fill:#ffcccc
-    style PC fill:#e1f5ff
-    style DC fill:#f0ffe1
-    style DL fill:#ffe1f5
-    style Step1 fill:#fff9e6
-    style Step2 fill:#fff9e6
-    style Step3 fill:#fff9e6
-```
-
-**Diagram 3**: The hoisting process flow showing transformation from a component with mixed concerns to separated presentation and domain layers. The three-step algorithm systematically extracts and relocates application dependencies.
-
-### Detailed Implementation Guide
-
-For a comprehensive guide to the hoisting algorithm, including:
-
-- Conceptual overview of why hoisting creates portability
-- Step-by-step algorithm (identify, convert, move)
-- Implementation details and decision trees
-- Refactoring patterns for common scenarios
-- Before/after code examples
-- Testing strategies for hoisted components
-
-See: **[Hoisting Algorithm: Technical Strategy](./technical-strategy/hoisting-algorithm.md)**
-
 ## Compositional UI Techniques
 
 With components organized into three layers, we use **composition** to build complete features and applications from smaller, reusable pieces.
@@ -461,7 +438,7 @@ graph TB
     style DataAPI fill:#ffe1f5
 ```
 
-**Diagram 4**: Composition pattern showing how the domain layer orchestrates data fetching and provides props to multiple presentation components. Data flows down, callbacks flow up.
+**Diagram 3**: Composition pattern showing how the domain layer orchestrates data fetching and provides props to multiple presentation components. Data flows down, callbacks flow up.
 
 ### How Layers Connect Through Composition
 
@@ -718,7 +695,7 @@ graph TB
     style Deep fill:#ffe1f5
 ```
 
-**Diagram 5**: Three embedding scenarios showing different levels of integration. Standalone apps run independently, shallow embeds mount complete apps, deep embeds compose custom UIs from individual pieces.
+**Diagram 4**: Three embedding scenarios showing different levels of integration. Standalone apps run independently, shallow embeds mount complete apps, deep embeds compose custom UIs from individual pieces.
 
 ### Scenario 1: Standalone Deployment
 
@@ -1339,7 +1316,7 @@ graph TB
     style Alt fill:#ffe1f5
 ```
 
-**Diagram 6**: Data layer substitution showing how different implementations (real API, mock, localStorage, alternative backend) can be swapped as long as they implement the same interface contract.
+**Diagram 5**: Data layer substitution showing how different implementations (real API, mock, localStorage, alternative backend) can be swapped as long as they implement the same interface contract.
 
 ### Interface Contract Preservation
 
@@ -1666,17 +1643,22 @@ By following these principles, you create a rich ecosystem of portable frontend 
 
 ### Next Steps
 
-1. **Apply the hoisting algorithm** to existing components - see [Hoisting Algorithm: Technical Strategy](./technical-strategy/hoisting-algorithm.md)
-2. **Structure your monorepo** with clear layer separation
-3. **Define your base UI library** and shared prerequisites
-4. **Set up centralized Storybook** for component documentation
-5. **Establish dependency management** practices and tooling
-6. **Document your public APIs** for each package
-7. **Create examples** of each embedding scenario
+1. **Understand the hoisting strategy** - see [Technical Strategy: Hoisting Algorithm](./technical-strategy/hoisting-algorithm.md)
+2. **Apply hoisting to existing components** - see [Guide: Hoisting Refactoring](./guides/hoisting-refactoring-guide.md)
+3. **Structure your monorepo** with clear layer separation
+4. **Define your base UI library** and shared prerequisites
+5. **Set up centralized Storybook** for component documentation
+6. **Establish dependency management** practices and tooling
+7. **Document your public APIs** for each package
+8. **Create examples** of each embedding scenario
 
 ### Additional Resources
 
-- [Hoisting Algorithm: Technical Strategy](./technical-strategy/hoisting-algorithm.md) - Detailed implementation guide
+**Pattern Documentation:**
+- [Technical Strategy: Hoisting Algorithm](./technical-strategy/hoisting-algorithm.md) - Execution details and principles
+- [Guide: Hoisting Refactoring](./guides/hoisting-refactoring-guide.md) - Step-by-step tutorial
+
+**External References:**
 - [Presentation Domain Data Layering](https://martinfowler.com/bliki/PresentationDomainDataLayering.html) - Martin Fowler
 - [Apollo Client-Side Architecture](https://www.apollographql.com/blog/apollo-client/architecture/client-side-architecture-basics/) - Three-layer pattern
 - [Container/Component Pattern](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0) - Dan Abramov
