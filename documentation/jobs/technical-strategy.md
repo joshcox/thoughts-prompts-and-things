@@ -1,7 +1,7 @@
 # Technical Strategy: Job Execution Framework
 
 ## 1. Overview
-This document outlines the standardized strategy for implementing, executing, and monitoring background jobs within the Exercise Service. Our goal is to provide a unified framework that abstracts away the complexities of observability, concurrency control, and error handling, allowing engineers to focus on the core business logic of their tasks.
+This document outlines the standardized strategy for implementing, executing, and monitoring background jobs within a service. Our goal is to provide a unified framework that abstracts away the complexities of observability, concurrency control, and error handling, allowing engineers to focus on the core business logic of their tasks.
 
 ## 2. Implementation Strategy
 We utilize a composition-based pattern for our jobs. Rather than forcing inheritance from a rigid base class, we define jobs as injectable services that implement a lightweight interface (`IJobRunnable`) and utilize a `Job` utility class to wrap execution logic. This approach favors flexibility and testability, allowing dependencies to be injected naturally while ensuring that every background task adheres to a strict contract of behavior.
