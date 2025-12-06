@@ -1,10 +1,4 @@
-Reviewing your prefetching pattern doc for context:
-
-
-[3 tools called]
-
-
-## Benefits of Prefetching
+# Benefits of Prefetching
 
 ### 1. **Faster perceived performance**
 - Data is in the HTML, so users see content immediately
