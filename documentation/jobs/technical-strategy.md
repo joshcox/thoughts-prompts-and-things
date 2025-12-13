@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: strategy
+tags: [jobs, technical-strategy, architecture, patterns]
+---
+
 # Technical Strategy: Job Execution Framework
 
 ## 1. Overview

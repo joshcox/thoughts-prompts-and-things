@@ -1,0 +1,143 @@
+---
+globs: *.md
+alwaysApply: false
+---
+* This is an obsidian vault.
+* Use standard markdown link notation.
+* Utilize frontmatter to configure tags
+* Utilize frontmatter to provide helpful metadata
+* Utilize README (index) pages at regular levels to index children
+
+
+## Note Classification System
+
+All notes should include frontmatter fields to classify their status, priority, and type:
+
+```yaml
+---
+status: draft
+priority: medium
+type: note
+---
+```
+
+### Status (Progress/Completeness)
+
+- `seed` - Initial idea, fragment, or quick capture
+- `draft` - Rough notes, incomplete thoughts, work in progress
+- `developing` - Actively being expanded and refined
+- `review` - Complete enough for review but may need refinement
+- `complete` - Finished and ready for reference
+- `archived` - No longer actively maintained but kept for historical reference
+
+### Priority (Importance)
+
+- `low` - Nice to have, exploratory, background material
+- `medium` - Useful but not urgent
+- `high` - Important for current work or decisions
+- `critical` - Essential reference, decision documentation, or key patterns
+
+### Type (Content Category)
+
+- `note` - General notes, thoughts, observations
+- `pattern` - Reusable patterns, architectural approaches
+- `strategy` - Strategic thinking, decision frameworks
+- `reference` - Documentation, guides, how-tos
+- `draft` - Early-stage work, experiments
+- `decision` - Documented decisions and rationale
+
+### Examples
+
+```yaml
+---
+status: developing
+priority: high
+type: pattern
+tags: [architecture, frontend]
+---
+```
+
+```yaml
+---
+status: seed
+priority: low
+type: note
+tags: [exploration]
+---
+```
+
+```yaml
+---
+status: complete
+priority: critical
+type: decision
+tags: [architecture, orpc]
+---
+```
+
+## README Index Pattern
+
+README files serve as index pages that organize and navigate documentation within directories. They should follow a consistent structure:
+
+### Structure
+
+```markdown
+---
+status: draft
+priority: medium
+type: reference
+tags: [topic, index]
+---
+
+# Section Title
+
+## Overview
+
+Brief description of what this directory contains.
+
+## Documentation Index
+
+### [`filename.md`](./filename.md)
+**Document Title**
+
+Description of what the document covers and when to read it.
+
+**Start here if:** Guidance on when this document is most useful.
+
+---
+
+### [`subdirectory/`](./subdirectory/)
+**Subdirectory Name**
+
+Description of what the subdirectory contains.
+
+**Key topics:** List of main topics covered
+
+---
+
+## Quick Navigation
+
+- [Link Text](./path/) - Brief description
+- [Another Link](./path/) - Brief description
+
+## Key Concepts
+
+- **Concept Name**: Brief explanation
+- **Another Concept**: Brief explanation
+```
+
+### Guidelines
+
+- **Type**: Always use `type: reference` for README index files
+- **Tags**: Include `index` tag plus relevant topic tags
+- **Priority**: Typically `medium` unless the index is critical for navigation
+- **Status**: Use appropriate status based on completeness
+- **Links**: Use relative markdown links with descriptive text
+- **Sections**: Include Overview, Documentation Index, Quick Navigation, and Key Concepts where applicable
+
+### When to Create README Files
+
+- At the top level of major documentation sections
+- For directories with 3+ related documents
+- When navigation would benefit from an index
+- For pattern libraries or collections of related content 

@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: reference
+tags: [orpc, security, filtering, patterns]
+---
+
 # Filtering ORPC Procedures
 
 ## Overview

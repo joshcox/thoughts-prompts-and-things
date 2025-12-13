@@ -1,6 +1,52 @@
 # The Jot
 For help thinking. 
 
+## 2025-12-12
+Happy Birthday, Mom. 
+
+Want to keep things up to date and rolling? Try being relentless with a daily iterative process. Be nonchalant. Nobody need know you're doing it. 
+* For mentorship, try a question a day, possibly for multiple people. Record the answers.
+* To keep architecture, design, decisions, and rules up to date, engage people in sprintly decision reviews.
+
+Some thoughts on UI:
+* Consider need and possible colocation of use*Page.ts hooks
+* Consider the meaning of a "Headless UI"
+  * Consider the meaning of "Headless UI" in context of pages
+    * Decision: Avoid this vague term and utilize common domain-driven jargon. 
+* What's the role of a page?
+  * Perhaps Controller in the NextJS sense? Take endpoint parameters and pass them directly to a connected feature-centric component composite.
+    * What is "connected feature-centric component composite"? That would be a feature-rich component made up of arbitrarily many arbitrary components. Other feature-centric component composites should be passed in as instances or factory props to ensure that they can be orchestrated.
+      * Is there a friendlier name? Business component? Domain Component? Domain Component makes sense - business logic of your UI. These are above the level of structural
+* What's the role of a layout?
+  * Layer? Application. 
+  * DRYness? Definitely, at least for UI nesting.
+    * What about when the layout needs data? Serverside rendering? Hoisting needed? 
+      * If hoisting out of client side is needed, how do we make that seamless?
+      * Or what if you just didn't? What if layout were just frames that required no domain data and they used providers to build an API to facilitate communication _up_ from children components or inform of layout-related information _down_ (e.g. maybe feature flags). Maybe use  use*Page.ts hooks to marry the domain-specific APIs to layout APIs.
+  * Can I pass multiple props to a layout?
+* Layers
+  * Application
+    * Layouts, DRY application framing
+    * Layout Hooks, hooks that allow children components to access and manipulate Layout state. Compose layout hooks down the Component Tree
+    * Pages, akin to NestJS Controllers
+    * Page Hooks, aggregate domain hooks and layout hooks, parameterized over SDK
+  * Domain
+    * Domain Components, business ui comprised
+    * Domain Services, 
+  * Infra
+    * Domain Hooks, hooks that allow children components to access and manipulate Layout state. A React wrapper of domain-specific SDK
+      * This may be the wrong layer. This might belong in the application layer. 
+    * SDK - 
+  * Presentation
+    * Pure Components
+    * Composite Components
+* Consider the need for a *.server|client.ts convention, if applicable
+
+
+## 2025-12-6
+
+It would be cool to create a markdown server. Like something I can embed in my webapp. I wonder how obsidian does it. 
+
 ## 2025-11-23
 ### Page/UI specific endpoints
 

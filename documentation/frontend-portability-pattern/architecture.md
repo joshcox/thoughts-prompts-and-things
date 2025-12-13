@@ -1,3 +1,10 @@
+---
+status: draft
+priority: critical
+type: pattern
+tags: [frontend-portability, architecture, patterns, monorepo]
+---
+
 # Frontend Portability Pattern: Architecture
 
 - [Frontend Portability Pattern: Architecture](#frontend-portability-pattern-architecture)

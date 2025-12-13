@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: strategy
+tags: [nextjs, ssr, prefetching, performance, strategy]
+---
+
 # Benefits of Prefetching
 
 ### 1. **Faster perceived performance**

@@ -1,3 +1,10 @@
+---
+status: draft
+priority: medium
+type: reference
+tags: [orpc, nextjs, proxying, index]
+---
+
 # ORPC Proxying Patterns
 
 ## Overview

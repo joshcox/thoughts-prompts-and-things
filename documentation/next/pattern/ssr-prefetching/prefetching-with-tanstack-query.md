@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: reference
+tags: [nextjs, tanstack-query, ssr, prefetching, patterns]
+---
+
 ## The Pattern: Server-Side Prefetching with TanStack Query
 
 You can prefetch on the server and hydrate TanStack Query. Here's how:
@@ -180,7 +187,7 @@ export async function prefetchNote(id: number) {
 }
 
 // In your note detail page layout:
-export default async function NoteLayout({ params }: { params: { id: string } }) {
+export default async function NoteLayout({ params, children }: { params: { id: string }; children: React.ReactNode }) {
   const id = parseInt(params.id, 10);
   const queryClient = await prefetchNote(id);
   const dehydratedState = dehydrate(queryClient);

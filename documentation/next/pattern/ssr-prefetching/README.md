@@ -1,3 +1,10 @@
+---
+status: draft
+priority: medium
+type: reference
+tags: [nextjs, ssr, prefetching, index]
+---
+
 # SSR Prefetching Patterns
 
 ## Overview

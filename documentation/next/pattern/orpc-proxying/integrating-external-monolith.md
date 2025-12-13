@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: reference
+tags: [orpc, nextjs, monolith, integration, patterns]
+---
+
 # Integrating Next.js with External ORPC Monolith
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: reference
+tags: [frontend-portability, hoisting, refactoring, guides]
+---
+
 # Hoisting Refactoring Guide
 
 This guide provides step-by-step instructions for refactoring components using the hoisting algorithm to achieve layer separation and portability.

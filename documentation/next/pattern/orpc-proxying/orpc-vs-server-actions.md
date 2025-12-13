@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: decision
+tags: [orpc, nextjs, server-actions, decision, comparison]
+---
+
 # ORPC vs Server Actions
 
 ## Comparison

@@ -1,3 +1,10 @@
+---
+status: draft
+priority: high
+type: reference
+tags: [orpc, nextjs, rpc, proxying, patterns]
+---
+
 # ORPC Proxying Through Next.js
 
 ## Overview
