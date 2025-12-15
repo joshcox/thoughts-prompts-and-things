@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "de6fcf03d5c3c70c",
+        "id": "46b8fb479cd48cab",
         "type": "tabs",
         "children": [
           {
-            "id": "62319d022acfeb8a",
+            "id": "8d06012cac527422",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "research-organization.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "research-organization"
             }
           }
         ]
@@ -49,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "tag:#zotero",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "research-organization.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for research-organization"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "research-organization.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from research-organization"
             }
           },
           {
@@ -150,19 +156,31 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "research-organization.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of research-organization"
+            }
+          },
+          {
+            "id": "939127284c1dacdb",
+            "type": "leaf",
+            "state": {
+              "type": "copilot-chat-view",
+              "state": {},
+              "icon": "message-square",
+              "title": "Copilot"
             }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "horizontal",
-    "width": 300,
+    "width": 806.5,
     "collapsed": true
   },
   "left-ribbon": {
@@ -173,17 +191,48 @@
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
       "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "bases:Create new base": false,
+      "copilot:Open Copilot Chat": false,
+      "templater-obsidian:Templater": false
     }
   },
-  "active": "62319d022acfeb8a",
+  "active": "8d06012cac527422",
   "lastOpenFiles": [
-    "documentation/design/README.md",
-    "documentation/README.md",
-    "documentation/next/pattern/README.md",
-    "documentation/next/README.md",
-    "documentation/jobs/README.md",
-    "documentation/frontend-portability-pattern/README.md",
-    "documentation/design/how-to-generate-a-figma-plugin.md"
+    "index.base",
+    "research-organization.md",
+    "the-jot.md",
+    "00-imported/00-imported.index.base",
+    "home.canvas",
+    "documentation/design/how-to-generate-a-figma-plugin.md",
+    "00-imported/web-clipper/Zotero MCP.md",
+    "54yyyu.md",
+    "index.md",
+    "Untitled.md",
+    "00-imported/zotero",
+    "00-imported/Untitled.base",
+    "00-imported/web-clipper",
+    "_meta/templates/task/base-task.md",
+    "01-tasks",
+    "_meta/templates/task",
+    "_meta/templates",
+    "_meta",
+    "private/Zotero Test.md",
+    "resources/collinaAccelerateNextjsKubernetes2025.md",
+    "00-imported",
+    "copilot/copilot-conversations/Review_this_guide_for_correctness.@20251213_085156.md",
+    "copilot/copilot-custom-prompts/Rewrite as tweet thread.md",
+    "copilot/copilot-custom-prompts/Rewrite as tweet.md",
+    "copilot/copilot-custom-prompts/Remove URLs.md",
+    "copilot/copilot-custom-prompts/Generate glossary.md",
+    "copilot/copilot-custom-prompts/Generate table of contents.md",
+    "copilot/copilot-custom-prompts/Make longer.md",
+    "copilot/copilot-custom-prompts/Make shorter.md",
+    "copilot/copilot-custom-prompts/Emojify.md",
+    "copilot/copilot-custom-prompts/Explain like I am 5.md",
+    "copilot/copilot-custom-prompts/Simplify.md",
+    "copilot/copilot-custom-prompts/Summarize.md",
+    "copilot/copilot-custom-prompts/Translate to Chinese.md",
+    "copilot/copilot-custom-prompts/Fix grammar and spelling.md",
+    "documentation/design/README.md"
   ]
 }

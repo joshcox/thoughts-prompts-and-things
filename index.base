@@ -1,0 +1,21 @@
+formulas:
+  Index: file.asLink(file.basename)
+views:
+  - type: cards
+    name: Table
+    filters:
+      and:
+        - file.ext == "base"
+        - file.fullname != "index.base"
+    order:
+      - formula.Index
+  - type: table
+    name: Full View
+    groupBy:
+      property: file.folder
+      direction: ASC
+    sort:
+      - property: file.ext
+        direction: ASC
+      - property: file.name
+        direction: ASC

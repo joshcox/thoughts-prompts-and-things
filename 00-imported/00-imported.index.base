@@ -1,0 +1,28 @@
+filters:
+  and:
+    - file.folder.startsWith("00-imported")
+    - file.ext == "md"
+formulas:
+  Source: link(source, 'source')
+views:
+  - type: table
+    name: Default
+    groupBy:
+      property: file.folder
+      direction: ASC
+    order:
+      - file.name
+      - formula.Source
+      - author
+      - file.links
+      - file.backlinks
+    sort:
+      - property: author
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      file.name: 254
+      formula.Source: 105
+      note.author: 125
+      file.links: 426

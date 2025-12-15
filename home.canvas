@@ -1,0 +1,7 @@
+{
+	"nodes":[
+		{"id":"f3424cb627f4b8b8","x":-660,"y":-1080,"width":220,"height":400,"type":"file","file":"index.base"},
+		{"id":"10bbf2590b044680","x":-420,"y":-1080,"width":600,"height":400,"color":"#5b3df0","type":"file","file":"the-jot.md"}
+	],
+	"edges":[]
+}
