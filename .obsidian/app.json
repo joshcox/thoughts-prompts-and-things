@@ -1,1 +1,9 @@
-{}
+{
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "trashOption": "local",
+  "newFileFolderPath": "02-in-queue",
+  "promptDelete": false,
+  "showInlineTitle": false
+}

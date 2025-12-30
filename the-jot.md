@@ -1,6 +1,6 @@
 #ideas #feed
 
-For help thinking. 
+A scratchpad for help thinking. 
 # 2025 December
 
 ## 2025-11-23
@@ -75,4 +75,5 @@ Some thoughts on UI:
 Found an application called Zotero today that could be useful. It's a source materials manager. It also fields RSS feeds. I could see it being useful for a couple reasons:
 - Be up to date on work-related feeds. Save impactful articles to Zotero library and create notes, related to the Zotero library
 
-
+### 2025-12-15
+- [[01-tasks/Dishes]]

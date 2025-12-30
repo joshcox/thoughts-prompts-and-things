@@ -1,0 +1,7 @@
+filters:
+  and:
+    - file.tags.contains("daily-note")
+    - file.path.startsWith("03-daily")
+views:
+  - type: table
+    name: Table

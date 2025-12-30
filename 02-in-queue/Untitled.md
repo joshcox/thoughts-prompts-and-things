@@ -1,0 +1,1 @@
+Write an essay about A* and procure a typescript implementation of the same. 

@@ -1,0 +1,235 @@
+{
+  "choices": [
+    {
+      "id": "ce01927c-517f-447e-a17c-583b0c626c4a",
+      "name": "Open Prompt",
+      "type": "Macro",
+      "command": false,
+      "runOnStartup": false,
+      "macro": {
+        "name": "Open Prompt",
+        "id": "6479cb2c-1c97-4a68-9b2c-629ca5caafb8",
+        "commands": [
+          {
+            "name": "AI Assistant",
+            "type": "AIAssistant",
+            "id": "3e8323ff-7df1-49c6-9fd6-bce0c318b4da",
+            "model": "Ask me",
+            "systemPrompt": "As an AI assistant within Obsidian, your primary goal is to help users manage their ideas and knowledge more effectively. Format your responses using Markdown syntax. Please use the [[Obsidian]] link format. You can write aliases for the links by writing [[Obsidian|the alias after the pipe symbol]]. To use mathematical notation, use LaTeX syntax. LaTeX syntax for larger equations should be on separate lines, surrounded with double dollar signs ($$). You can also inline math expressions by wrapping it in $ symbols. For example, use $$w_{ij}^{\text{new}}:=w_{ij}^{\text{current}}+etacdotdelta_jcdot x_{ij}$$ on a separate line, but you can write \"($eta$ = learning rate, $delta_j$ = error term, $x_{ij}$ = input)\" inline.",
+            "outputVariableName": "output",
+            "promptTemplate": {
+              "enable": true,
+              "name": "write-prompt.md"
+            },
+            "modelParameters": {
+              "temperature": 1,
+              "top_p": 1,
+              "frequency_penalty": 0,
+              "presence_penalty": 0
+            }
+          },
+          {
+            "name": "Write to active file",
+            "type": "NestedChoice",
+            "id": "ac5d9aea-caf8-4d0c-9f09-0047ca9a632d",
+            "choice": {
+              "id": "320d9d3d-e636-4e06-9802-9f97cc86a0ce",
+              "name": "Write to active file",
+              "type": "Capture",
+              "command": false,
+              "appendLink": false,
+              "captureTo": "",
+              "captureToActiveFile": true,
+              "activeFileWritePosition": "cursor",
+              "createFileIfItDoesntExist": {
+                "enabled": false,
+                "createWithTemplate": false,
+                "template": ""
+              },
+              "format": {
+                "enabled": true,
+                "format": "{{value:output}}"
+              },
+              "insertAfter": {
+                "enabled": false,
+                "after": "",
+                "insertAtEnd": false,
+                "considerSubsections": false,
+                "createIfNotFound": false,
+                "createIfNotFoundLocation": "top"
+              },
+              "newLineCapture": {
+                "enabled": false,
+                "direction": "below"
+              },
+              "prepend": false,
+              "task": false,
+              "openFile": false,
+              "fileOpening": {
+                "location": "tab",
+                "direction": "vertical",
+                "mode": "default",
+                "focus": true
+              },
+              "templater": {
+                "afterCapture": "none"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "inputPrompt": "multi-line",
+  "devMode": false,
+  "templateFolderPath": "",
+  "announceUpdates": "all",
+  "version": "2.9.4",
+  "globalVariables": {},
+  "onePageInputEnabled": false,
+  "disableOnlineFeatures": false,
+  "enableRibbonIcon": false,
+  "showCaptureNotification": true,
+  "showInputCancellationNotification": false,
+  "enableTemplatePropertyTypes": false,
+  "ai": {
+    "defaultModel": "Ask me",
+    "defaultSystemPrompt": "As an AI assistant within Obsidian, your primary goal is to help users manage their ideas and knowledge more effectively. Format your responses using Markdown syntax. Please use the [[Obsidian]] link format. You can write aliases for the links by writing [[Obsidian|the alias after the pipe symbol]]. To use mathematical notation, use LaTeX syntax. LaTeX syntax for larger equations should be on separate lines, surrounded with double dollar signs ($$). You can also inline math expressions by wrapping it in $ symbols. For example, use $$w_{ij}^{\text{new}}:=w_{ij}^{\text{current}}+etacdotdelta_jcdot x_{ij}$$ on a separate line, but you can write \"($eta$ = learning rate, $delta_j$ = error term, $x_{ij}$ = input)\" inline.",
+    "promptTemplatesFolderPath": "_meta/prompts",
+    "showAssistant": true,
+    "providers": [
+      {
+        "name": "OpenRouter",
+        "endpoint": "https://openrouter.ai/api/v1",
+        "apiKey": "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",
+        "models": [
+          {
+            "name": "openai/gpt-5.2",
+            "maxTokens": 400000
+          },
+          {
+            "name": "x-ai/grok-4.1-fast",
+            "maxTokens": 2000000
+          },
+          {
+            "name": "google/gemini-3-pro-preview",
+            "maxTokens": 1048576
+          },
+          {
+            "name": "anthropic/claude-sonnet-4.5",
+            "maxTokens": 1000000
+          },
+          {
+            "name": "x-ai/grok-code-fast-1",
+            "maxTokens": 256000
+          }
+        ],
+        "modelSource": "providerApi"
+      },
+      {
+        "name": "OpenCode Zen",
+        "endpoint": "https://opencode.ai/zen/v1",
+        "apiKey": "sk-42EQuzjxaPqGNeE0sajUlrqqzyvVqi6u48ZHE4gbjlUFdHchf2kBx3ggz9sA0CXg",
+        "models": [
+          {
+            "name": "claude-opus-4-5",
+            "maxTokens": 128000
+          },
+          {
+            "name": "claude-sonnet-4-5",
+            "maxTokens": 128000
+          },
+          {
+            "name": "claude-haiku-4-5",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gemini-3-pro",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5.2",
+            "maxTokens": 128000
+          },
+          {
+            "name": "grok-code",
+            "maxTokens": 128000
+          },
+          {
+            "name": "claude-opus-4-1",
+            "maxTokens": 128000
+          },
+          {
+            "name": "claude-sonnet-4",
+            "maxTokens": 128000
+          },
+          {
+            "name": "claude-3-5-haiku",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5.1",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5.1-codex-max",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5.1-codex",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5-codex",
+            "maxTokens": 128000
+          },
+          {
+            "name": "gpt-5-nano",
+            "maxTokens": 128000
+          },
+          {
+            "name": "qwen3-coder",
+            "maxTokens": 128000
+          },
+          {
+            "name": "glm-4.6",
+            "maxTokens": 128000
+          },
+          {
+            "name": "kimi-k2",
+            "maxTokens": 128000
+          },
+          {
+            "name": "kimi-k2-thinking",
+            "maxTokens": 128000
+          },
+          {
+            "name": "alpha-gd4",
+            "maxTokens": 128000
+          },
+          {
+            "name": "big-pickle",
+            "maxTokens": 128000
+          }
+        ],
+        "modelSource": "providerApi",
+        "autoSyncModels": true
+      }
+    ]
+  },
+  "migrations": {
+    "migrateToMacroIDFromEmbeddedMacro": true,
+    "useQuickAddTemplateFolder": true,
+    "incrementFileNameSettingMoveToDefaultBehavior": true,
+    "mutualExclusionInsertAfterAndWriteToBottomOfFile": true,
+    "setVersionAfterUpdateModalRelease": true,
+    "addDefaultAIProviders": true,
+    "removeMacroIndirection": true,
+    "migrateFileOpeningSettings": true,
+    "setProviderModelDiscoveryMode": true
+  }
+}

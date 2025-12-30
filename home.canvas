@@ -1,7 +1,12 @@
 {
 	"nodes":[
-		{"id":"f3424cb627f4b8b8","x":-660,"y":-1080,"width":220,"height":400,"type":"file","file":"index.base"},
-		{"id":"10bbf2590b044680","x":-420,"y":-1080,"width":600,"height":400,"color":"#5b3df0","type":"file","file":"the-jot.md"}
+		{"id":"85101c94b6d2e335","type":"file","file":"01-tasks/views/calendar.base","x":1360,"y":-1980,"width":1260,"height":860},
+		{"id":"e26bea811cc07d39","type":"file","file":"01-tasks/views/agenda.base","x":1360,"y":-1080,"width":1260,"height":860},
+		{"id":"0be90c4c2091dfe5","type":"file","file":"01-tasks/views/tasks.base","x":-160,"y":-1980,"width":740,"height":980},
+		{"id":"f3424cb627f4b8b8","type":"file","file":"index.base","x":-430,"y":-1980,"width":220,"height":980},
+		{"id":"75688e6a7778a71b","type":"file","file":"03-daily/03-daily.index.base","x":620,"y":-1980,"width":700,"height":290},
+		{"id":"10bbf2590b044680","type":"file","file":"the-jot.md","x":620,"y":-1640,"width":700,"height":1420,"color":"#5b3df0"},
+		{"id":"3218c4b45fa60709","type":"file","file":"01-tasks/views/kanban.base","x":-430,"y":-960,"width":1010,"height":740}
 	],
 	"edges":[]
 }

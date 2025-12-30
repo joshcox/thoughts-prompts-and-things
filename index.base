@@ -7,8 +7,14 @@ views:
       and:
         - file.ext == "base"
         - file.fullname != "index.base"
+    groupBy:
+      property: file.folder
+      direction: ASC
     order:
       - formula.Index
+    sort:
+      - property: file.name
+        direction: ASC
   - type: table
     name: Full View
     groupBy:
@@ -17,5 +23,19 @@ views:
     sort:
       - property: file.ext
         direction: ASC
+      - property: file.name
+        direction: ASC
+  - type: list
+    name: List
+    filters:
+      and:
+        - file.ext == "base"
+        - file.fullname != "index.base"
+    groupBy:
+      property: file.folder
+      direction: ASC
+    order:
+      - formula.Index
+    sort:
       - property: file.name
         direction: ASC

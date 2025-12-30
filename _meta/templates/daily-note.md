@@ -1,0 +1,95 @@
+# {{date:YYYY-MM-DD}} - Daily Note
+
+## 🎯 Focus & Priorities
+
+### Top 3 Today
+- [ ] 
+- [ ] 
+- [ ] 
+
+### Context
+<!-- What's the bigger picture? What are you working towards this week/sprint? -->
+
+
+## 📅 Schedule
+
+### Meetings
+<!-- Quick notes from meetings, decisions made, action items -->
+
+#### 
+- **Attendees:**
+- **Key Points:**
+- **Decisions:**
+- **Action Items:**
+
+
+## 🏗️ Technical Work
+
+### Architecture & Design
+<!-- System design, architectural decisions, technical strategy -->
+
+
+### Code Reviews
+<!-- Notable PRs reviewed, patterns observed, feedback given -->
+
+
+### Implementation
+<!-- What you built, refactored, or debugged today -->
+
+
+## 👥 Leadership & Mentorship
+
+### Mentoring
+<!-- Questions asked, guidance provided, 1:1s -->
+
+
+### Cross-team Collaboration
+<!-- Unblocking others, coordination, knowledge sharing -->
+
+
+## 🚧 Blockers & Escalations
+
+### Blocked On
+<!-- What's preventing progress? -->
+
+
+### Escalations
+<!-- Issues that need attention from leadership or other teams -->
+
+
+## 💡 Insights & Learning
+
+### Technical Insights
+<!-- New patterns, discoveries, "aha" moments -->
+
+
+### Process Observations
+<!-- What's working well? What could be improved? -->
+
+
+### Questions to Explore
+<!-- Things to investigate further -->
+
+
+## 📝 Notes & Thoughts
+<!-- Free-form notes, ideas, observations -->
+
+
+## 🔄 End of Day Reflection
+
+### Accomplished
+<!-- What did you ship or move forward? -->
+
+
+### Tomorrow's Focus
+<!-- What should you prioritize tomorrow? -->
+
+
+### Energy & Context
+<!-- How are you feeling? What context do you need to preserve for tomorrow? -->
+
+
+---
+**Tags:** #daily-note #{{date:YYYY-MM}} #{{date:YYYY}}
+**Related:** [[]] [[]] [[]]
+
